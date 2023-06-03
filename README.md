@@ -11,7 +11,7 @@ Register Page:  <br/>
 <img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/8e69eb1b-1ec7-4082-bf22-ca77218f251f" height=500px/>
 <br/>
 Home Page: All books in the app<br/>
-<img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/e7252cae-6853-4dcb-99f5-f82c6f1cf680" height=500px/>
+<img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/a8d6b0bd-3771-4076-8fdf-53221fb534c4" height=500px/>
 
 Clicking on More button :All recommendations about this book<br/>
 <img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/199f57b7-6192-4848-bfd9-3bddca3c3972" height=500px/>
@@ -21,7 +21,7 @@ An option for adding recommendation: <br/>
 <br/>
 
 Navigation Bar: <br/>
-<img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/8169f1fe-4a66-486a-950c-1fa41dbe0d9d" height=500px/>
+<img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/6c3f1b98-1c17-4d82-8662-f38d19c81430" height=500px/>
 <br/>
 Books Gallery: :blue_book: :blue_book: :blue_book:<br/>
 <img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/73ebccc5-3347-4189-b523-677b11f19a2d" height=500px/>
@@ -30,15 +30,18 @@ Books Gallery: :blue_book: :blue_book: :blue_book:<br/>
 
 Reading List: you can mark it as done or just delete it :<br/>
 
-![image](https://github.com/Alaa-Barazi/BookApp/assets/127497841/da22b35b-0296-4068-8a23-d1e08045cbba)
+![image](https://github.com/Alaa-Barazi/BookApp/assets/127497841/4dbb4465-17bd-43cf-9866-508090c8f2fc)
+
 <br/>
 Favorite books: <br/>
-![image](https://github.com/Alaa-Barazi/BookApp/assets/127497841/4a19d7a1-75c5-4c3a-b72c-f8ebfad98280)
+
+<img src="https://github.com/Alaa-Barazi/BookApp/assets/127497841/5acd9a5b-b890-4524-a875-58f9acefa504" />
 
 
 Edit Profile Details :
 <br/>
-![image](https://github.com/Alaa-Barazi/BookApp/assets/127497841/d007c11a-8c94-4c07-b71f-c3ffaa274a6d)
+
+![image](https://github.com/Alaa-Barazi/BookApp/assets/127497841/7e81614f-d254-4e21-a9f5-06e4ec90878d)
 
 
 
