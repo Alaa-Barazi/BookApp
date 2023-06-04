@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.myapplication.Book;
 import com.example.myapplication.BookList;
+import com.example.myapplication.CartBook;
 import com.example.myapplication.FavoriteBook;
 import com.example.myapplication.MoreBook;
 import com.example.myapplication.R;
@@ -34,6 +35,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HomeFragment extends Fragment {
     ArrayList<Book> Books=new ArrayList<>();
@@ -50,7 +53,7 @@ public class HomeFragment extends Fragment {
         username = sharedPreferences.getString("username","empty");
         HomeViewModel homeViewModel =
                 new ViewModelProvider(this).get(HomeViewModel.class);
-
+        //View root=inflater.inflate(R.layout.fragment_home,container,false);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         ls=(ListView) binding.bookList;
@@ -68,7 +71,9 @@ public class HomeFragment extends Fragment {
                     // String fieldValue = (String) childSnapshot.child("field_name").getValue();
                     String name = (String) data.child("name").getValue();
                     String img = (String) data.child("img").getValue();
-                    Book book = new Book(Integer.parseInt(key),name,img);
+                    String price = (String) data.child("price").getValue();
+                    int realPrice = Integer.parseInt(price);
+                    Book book = new Book(Integer.parseInt(key),name,img,realPrice);
                     Books.add(book);
                 }
                 myAdapter.notifyDataSetChanged();
@@ -121,15 +126,18 @@ public class HomeFragment extends Fragment {
         public View getView(int i, View view, ViewGroup viewGroup) {
             LayoutInflater Linflater = getLayoutInflater();
             View view1 = Linflater.inflate(R.layout.bookview, null);
-
             TextView bookTitle = view1.findViewById(R.id.BookTitle);
+            TextView price = view1.findViewById(R.id.price);
             ImageView bookImage = view1.findViewById(R.id.bookImage);
             Button addReadingList = view1.findViewById(R.id.addReadingList);
             Button addToFavorites = view1.findViewById(R.id.removeFromFavorites);
             Button more = view1.findViewById(R.id.more);
+            Button cart = view1.findViewById(R.id.cart);
             bookTitle.setText(Books.get(i).getName());
+            price.setText("Price "+Books.get(i).getPrice()+" $");
             String imageUrl = Books.get(i).getImg();
             Picasso.get().load(imageUrl).into(bookImage);
+
             more.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -143,6 +151,43 @@ public class HomeFragment extends Fragment {
                     intent.putExtra("bookName",Books.get(i).getName());
 
                     startActivity(intent);
+                }
+            });
+            cart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            int BookID= Books.get(i).getId();
+
+                            if(snapshot.hasChild(Integer.toString(BookID))){
+                                String key = Integer.toString(Books.get(i).getId());
+                                DataSnapshot dataSnapshot = snapshot.child(key);
+                                int amount = dataSnapshot.child("amount").getValue(Integer.class);
+                                amount++;
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("id", key);
+                                updates.put("name", Books.get(i).getName());
+                                updates.put("img", Books.get(i).getImg());
+                                updates.put("price", Books.get(i).getPrice());
+                                updates.put("username", username);
+                                updates.put("amount",amount);
+                                databaseReference.child("cart").child(key).updateChildren(updates);
+                                Toast.makeText(getActivity(), "Already Exists, amount changed", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                CartBook cartBook = new CartBook(Books.get(i).getName(),imageUrl,Integer.toString(BookID),Books.get(i).getPrice(),username,1);
+                                databaseReference.child("cart").child(Integer.toString(BookID)).setValue(cartBook);
+                                Toast.makeText(getActivity(), "Added Successfully", Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
                 }
             });
             addToFavorites.setOnClickListener(new View.OnClickListener() {

@@ -4,10 +4,12 @@ public class Book {
     private String name;
     private String img;
     private int id;
-    public Book(int id,String name,String img){
+    private int price;
+    public Book(int id,String name,String img,int price){
         this.id=id;
         this.name=name;
         this.img=img;
+        this.price=price;
     }
 //    public Book(String name,String img){
 //        this.name=name;
@@ -23,5 +25,9 @@ public class Book {
 
     public String getImg() {
         return img;
+    }
+
+    public int getPrice() {
+        return price;
     }
 }

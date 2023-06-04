@@ -50,8 +50,6 @@ public class FavoritesFragment extends Fragment {
         username = sharedPreferences.getString("username","empty");
 
         ls= (ListView) root.findViewById(R.id.booksList);
-        // MyAdapter myAdapter=new MyAdapter(favoriteBooks);
-      //   myAdapter.getView(0,root,container);
         MyAdapter myAdapter = new MyAdapter(favoriteBooks);
         ls.setAdapter(myAdapter);
 
