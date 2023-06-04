@@ -43,6 +43,9 @@ public class CartFragment extends Fragment {
     SharedPreferences sharedPreferences;
     String username;
     ListView ls;
+    Button btnPay;
+    int total=0;
+    TextView totalTxt;
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReferenceFromUrl("https://fireapp-4a2be-default-rtdb.firebaseio.com/");
     ArrayList<CartBook> cartBooks=new ArrayList<CartBook>();
 
@@ -54,9 +57,38 @@ public class CartFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         cartBooks=new ArrayList<>();
+        total=0;
+
         View root=inflater.inflate(R.layout.fragment_cart,container,false);
         sharedPreferences = getActivity().getSharedPreferences("Myprefs", Context.MODE_PRIVATE);
         username = sharedPreferences.getString("username","empty");
+        totalTxt = (TextView) root.findViewById(R.id.totalTxt);
+        //totalTxt.setText(total);
+        btnPay = (Button) root.findViewById(R.id.btnPay);
+        btnPay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot dataSnapshot :snapshot.getChildren()){
+                            String key = dataSnapshot.getKey();
+                            String user = (String) dataSnapshot.child("username").getValue();
+                            if(username.equals(user)) {
+                                databaseReference.child("cart").child(key).removeValue();
+                                Toast.makeText(getActivity(), "Cart Payed!!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(getActivity().getIntent()));
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+        });
         ls= (ListView) root.findViewById(R.id.cartLS);
         CartFragment.MyAdapter myAdapter = new CartFragment.MyAdapter(cartBooks);
         ls.setAdapter(myAdapter);
@@ -74,7 +106,10 @@ public class CartFragment extends Fragment {
                    String user = (String) data.child("username").getValue();
                     String name = (String) data.child("name").getValue();
                     String img = (String) data.child("img").getValue();
+
                     if(username.equals(user)) {
+                        total=total+(amount*price);
+                        totalTxt.setText("Total: "+total);
                         CartBook cartBook = new CartBook(name,img,id,price,username,amount);
                         cartBooks.add(cartBook);
                     }
@@ -87,6 +122,7 @@ public class CartFragment extends Fragment {
 
             }
         });
+
         return root;
     }
 
@@ -129,6 +165,7 @@ public class CartFragment extends Fragment {
             amount.setText("Amount:"+cartBooks.get(i).getAmount());
             bookTitle.setText(cartBooks.get(i).getName());
             String imageUrl = cartBooks.get(i).getImg();
+
             Picasso.get().load(imageUrl).into(bookImage);
             more.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -152,6 +189,8 @@ public class CartFragment extends Fragment {
                                 databaseReference.child("cart").child(key).updateChildren(updates);
                                 Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
                                 amount.setText("Amount:"+Bookamountt);
+                                total=total+(cartBooks.get(i).getPrice());
+                                totalTxt.setText("Total: "+total);
 
                             }
                         }
@@ -172,11 +211,20 @@ public class CartFragment extends Fragment {
                                 String key = cartBooks.get(i).getId();
                                 DataSnapshot dataSnapshot = snapshot.child(key);
                                 int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
+                                if(Bookamountt==1){
+                                    total=total+(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
+                                    totalTxt.setText("Total: "+total);
+                                }
                                 Bookamountt--;
+                                //total=total-(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
+                                //totalTxt.setText("Total: "+total);
                                 if(Bookamountt == 0){
                                     databaseReference.child("cart").child(key).removeValue();
                                     Toast.makeText(getActivity(), "Deleted", Toast.LENGTH_SHORT).show();
+
+
                                     amount.setText("Amount:"+Bookamountt);
+                                    startActivity(new Intent(getActivity().getIntent()));
                                 }
                                 else {
                                     Map<String, Object> updates = new HashMap<>();
@@ -189,6 +237,8 @@ public class CartFragment extends Fragment {
                                     databaseReference.child("cart").child(key).updateChildren(updates);
                                     Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
                                     amount.setText("Amount:"+Bookamountt);
+                                    total=total-(cartBooks.get(i).getPrice());
+                                    totalTxt.setText("Total: "+total);
                                 }
                             }
                         }

@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.DialogPreference;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -82,8 +84,16 @@ public class navbar extends AppCompatActivity {
         txtEmailUser.setText(mail);
         txtNameUser.setText("Welcome: "+name);
         Button EditProfile = (Button) findViewById(R.id.EditProfile) ;
+        ImageButton logoutBtn = (ImageButton) findViewById(R.id.logoutBtn);
         EditText userUpdate = (EditText)findViewById(R.id.txtUsernameDialog);
         EditText emailUpdate = (EditText)findViewById(R.id.txtEmailDialog);
+        logoutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent int1 = new Intent(navbar.this, MainActivity.class);
+                startActivity(int1);
+            }
+        });
         EditProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
