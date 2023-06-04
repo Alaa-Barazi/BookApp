@@ -134,7 +134,7 @@ public class HomeFragment extends Fragment {
             Button more = view1.findViewById(R.id.more);
             Button cart = view1.findViewById(R.id.cart);
             bookTitle.setText(Books.get(i).getName());
-            price.setText("Price "+Books.get(i).getPrice()+" $");
+            price.setText("Price: "+Books.get(i).getPrice()+"$");
             String imageUrl = Books.get(i).getImg();
             Picasso.get().load(imageUrl).into(bookImage);
 

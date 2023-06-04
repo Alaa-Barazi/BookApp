@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.Toast;
 
+import com.example.myapplication.ui.home.HomeFragment;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,11 +47,12 @@ public class AddRec extends AppCompatActivity {
                         String Rtitle = title.getText().toString();
                         String Rdesc = desc.getText().toString();
                         int rating = ratingBar.getNumStars();
-                        Toast.makeText(AddRec.this, Rtitle+" "+Rdesc, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(AddRec.this, Rtitle+" "+Rdesc, Toast.LENGTH_SHORT).show();
                         Rec rec = new Rec(Rtitle,Rdesc,Integer.toString(rating),bookID);
                         //databaseReference.child("users").child(name).setValue(user1);
                         databaseReference.child("recommendation").child(key).setValue(rec);
                         Toast.makeText(AddRec.this, "Added Successfully", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(AddRec.this, HomeFragment.class));
                     }
 
                     @Override
