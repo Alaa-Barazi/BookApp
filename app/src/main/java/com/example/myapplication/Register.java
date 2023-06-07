@@ -42,20 +42,27 @@ public class Register extends AppCompatActivity {
                     databaseReference.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.hasChild(name)) {
+                            Toast.makeText(Register.this, name, Toast.LENGTH_SHORT).show();
+
+                           if (snapshot.hasChild(name)) {
                                 Toast.makeText(Register.this, "User Already Exists", Toast.LENGTH_SHORT).show();
                             }
-                            else {
+                          else {
 
                                 User user1 = new User(email,pass);
-                                databaseReference.child("users").child(name).setValue(user1);
-                                Toast.makeText(Register.this, "You are in!! Now Login ", Toast.LENGTH_LONG).show();
+                               Toast.makeText(Register.this, email+" "+pass, Toast.LENGTH_SHORT).show();
+                               databaseReference.child("users").child(name).setValue(user1);
+
+
+//                               CartBook cartBook = new CartBook(Books.get(i).getName(),imageUrl,Integer.toString(BookID),Books.get(i).getPrice(),username,1);
+//                               databaseReference.child("cart").child(Integer.toString(BookID)).setValue(cartBook);
+//                               Toast.makeText(getActivity(), "Added Successfully", Toast.LENGTH_LONG).show();
+                               Toast.makeText(Register.this, "You are in!! Now Login ", Toast.LENGTH_LONG).show();
                               startActivity(new Intent(Register.this,MainActivity.class));
                             }
                         }
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(Register.this, "Fail to add data " + error, Toast.LENGTH_SHORT).show();
                         }
                     });
                 }

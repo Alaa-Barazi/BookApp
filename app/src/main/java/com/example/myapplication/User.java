@@ -16,7 +16,7 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
-    public void setPassWord(String pass) {
+    public void setPassword(String pass) {
         this.password = pass;
     }
 
