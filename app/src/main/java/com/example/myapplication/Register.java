@@ -42,7 +42,7 @@ public class Register extends AppCompatActivity {
                     databaseReference.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            Toast.makeText(Register.this, name, Toast.LENGTH_SHORT).show();
+
 
                            if (snapshot.hasChild(name)) {
                                 Toast.makeText(Register.this, "User Already Exists", Toast.LENGTH_SHORT).show();
@@ -50,7 +50,7 @@ public class Register extends AppCompatActivity {
                           else {
 
                                 User user1 = new User(email,pass);
-                               Toast.makeText(Register.this, email+" "+pass, Toast.LENGTH_SHORT).show();
+
                                databaseReference.child("users").child(name).setValue(user1);
 
 
