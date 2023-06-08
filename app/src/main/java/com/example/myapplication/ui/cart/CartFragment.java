@@ -126,6 +126,7 @@ public class CartFragment extends Fragment {
             }
         });
 
+
         return root;
     }
 
@@ -172,32 +173,34 @@ public class CartFragment extends Fragment {
             String imageUrl = cartBooks.get(i).getImg();
 
             Picasso.get().load(imageUrl).into(bookImage);
-            CartBook cartBook = CBooks.get(i);
 
-
-            databaseReference.child("books").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    for (DataSnapshot bookSnapshot : snapshot.getChildren()) {
-                        String total = (String) bookSnapshot.child("total").getValue();
-                        bookTotal = Integer.parseInt(total);
-                        if(bookTotal>0){
-
-                        }
-
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    // Handle any errors that occur
-                }
-            });
 
 
                 more.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        databaseReference.child("books").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                for (DataSnapshot bookSnapshot : snapshot.getChildren()) {
+                                    String key = bookSnapshot.getKey();
+
+                                    String total;
+                                    if (key.equals(CBooks.get(i).getId())) {
+                                        total = (String) bookSnapshot.child("total").getValue();
+                                        bookTotal = Integer.parseInt(total);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                // Handle any errors that occur
+                            }
+                        });
+                        if (bookTotal != 0) {
+
                         databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -228,6 +231,8 @@ public class CartFragment extends Fragment {
                                                 int updatedAmount = bookAmount - 1;
                                                 bookTotal = updatedAmount;
                                                 booksReference.child("total").setValue(Integer.toString(updatedAmount));
+
+
                                             }
                                         }
 
@@ -237,6 +242,7 @@ public class CartFragment extends Fragment {
                                         }
                                     });
 
+
                                 }
                             }
 
@@ -245,6 +251,10 @@ public class CartFragment extends Fragment {
                             }
 
                         });
+                    }
+                        else{
+                            Toast.makeText(getActivity(), "Sold OUT", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
 
