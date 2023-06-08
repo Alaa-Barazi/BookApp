@@ -73,7 +73,9 @@ public class HomeFragment extends Fragment {
                     String img = (String) data.child("img").getValue();
                     String price = (String) data.child("price").getValue();
                     int realPrice = Integer.parseInt(price);
-                    Book book = new Book(Integer.parseInt(key),name,img,realPrice);
+                    String total = (String) data.child("total").getValue();
+                    int realTotal = Integer.parseInt(total);
+                    Book book = new Book(Integer.parseInt(key),name,img,realPrice,realTotal);
                     Books.add(book);
                 }
                 myAdapter.notifyDataSetChanged();
@@ -159,30 +161,39 @@ public class HomeFragment extends Fragment {
                     databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            int BookID= Books.get(i).getId();
-
-                            if(snapshot.hasChild(Integer.toString(BookID))){
-                                String key = Integer.toString(Books.get(i).getId());
-                                DataSnapshot dataSnapshot = snapshot.child(key);
-                                int amount = dataSnapshot.child("amount").getValue(Integer.class);
-                                amount++;
+                            int BookID = Books.get(i).getId();
+                            if (Books.get(i).getTotal() <= 0) {
+                                Toast.makeText(getActivity(), "This book is sold out", Toast.LENGTH_SHORT).show();
+                            } else {
+                                if (snapshot.hasChild(Integer.toString(BookID))) {
+                                    String key = Integer.toString(Books.get(i).getId());
+                                    DataSnapshot dataSnapshot = snapshot.child(key);
+                                    int amount = dataSnapshot.child("amount").getValue(Integer.class);
+                                    amount++;
+                                    Map<String, Object> updates = new HashMap<>();
+                                    updates.put("id", key);
+                                    updates.put("name", Books.get(i).getName());
+                                    updates.put("img", Books.get(i).getImg());
+                                    updates.put("price", Books.get(i).getPrice());
+                                    updates.put("username", username);
+                                    updates.put("amount", amount);
+                                    databaseReference.child("cart").child(key).updateChildren(updates);
+                                    Toast.makeText(getActivity(), "Already Exists, amount changed", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    CartBook cartBook = new CartBook(Books.get(i).getName(), imageUrl, Integer.toString(BookID), Books.get(i).getPrice(), username, 1);
+                                    databaseReference.child("cart").child(Integer.toString(BookID)).setValue(cartBook);
+                                    Toast.makeText(getActivity(), "Added Successfully", Toast.LENGTH_LONG).show();
+                                }
+                                Books.get(i).setTotal(Books.get(i).getTotal()-1);
                                 Map<String, Object> updates = new HashMap<>();
-                                updates.put("id", key);
-                                updates.put("name", Books.get(i).getName());
                                 updates.put("img", Books.get(i).getImg());
-                                updates.put("price", Books.get(i).getPrice());
-                                updates.put("username", username);
-                                updates.put("amount",amount);
-                                databaseReference.child("cart").child(key).updateChildren(updates);
-                                Toast.makeText(getActivity(), "Already Exists, amount changed", Toast.LENGTH_SHORT).show();
-                            }
-                            else{
-                                CartBook cartBook = new CartBook(Books.get(i).getName(),imageUrl,Integer.toString(BookID),Books.get(i).getPrice(),username,1);
-                                databaseReference.child("cart").child(Integer.toString(BookID)).setValue(cartBook);
-                                Toast.makeText(getActivity(), "Added Successfully", Toast.LENGTH_LONG).show();
+                                updates.put("name", Books.get(i).getName());
+                                updates.put("price", Integer.toString(Books.get(i).getPrice()));
+                                updates.put("total", Integer.toString(Books.get(i).getTotal()));
+                                databaseReference.child("books").child(Integer.toString(BookID)).setValue(updates);
+
                             }
                         }
-
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
 

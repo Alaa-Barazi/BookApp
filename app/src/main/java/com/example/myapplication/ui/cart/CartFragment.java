@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.myapplication.Book;
 import com.example.myapplication.CartBook;
 import com.example.myapplication.FavoriteBook;
 import com.example.myapplication.MoreBook;
@@ -42,6 +43,7 @@ public class CartFragment extends Fragment {
     private CartViewModel mViewModel;
     SharedPreferences sharedPreferences;
     String username;
+    int bookTotal=0;
     ListView ls;
     Button btnPay;
     int total=0;
@@ -65,6 +67,7 @@ public class CartFragment extends Fragment {
         totalTxt = (TextView) root.findViewById(R.id.totalTxt);
         //totalTxt.setText(total);
         btnPay = (Button) root.findViewById(R.id.btnPay);
+
         btnPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -131,7 +134,7 @@ public class CartFragment extends Fragment {
         MyAdapter(ArrayList<CartBook>Books){
             this.CBooks=Books;
         }
-
+        int bookTotal;
         @Override
         public int getCount() {
             return CBooks.size();
@@ -154,79 +157,56 @@ public class CartFragment extends Fragment {
         public View getView(int i, View view, ViewGroup viewGroup) {
             LayoutInflater Linflater = getLayoutInflater();
             View view1 = Linflater.inflate(R.layout.cartview, null);
+            String bookId = cartBooks.get(i).getId();
+            DatabaseReference booksReference = databaseReference.child("books").child(bookId);
             TextView bookTitle = view1.findViewById(R.id.BookTitle);
-            TextView price =view1.findViewById(R.id.price);
+            TextView price = view1.findViewById(R.id.price);
             ImageView bookImage = view1.findViewById(R.id.bookImage);
             TextView amount = (TextView) view1.findViewById(R.id.amount);
-           // Button removeFromFavorites = view1.findViewById(R.id.removeFromFavorites);
+            // Button removeFromFavorites = view1.findViewById(R.id.removeFromFavorites);
             Button more = view1.findViewById(R.id.more);
             Button less = view1.findViewById(R.id.less);
-            price.setText("Price: "+cartBooks.get(i).getPrice()+"$");
-            amount.setText("Amount:"+cartBooks.get(i).getAmount());
+            price.setText("Price: " + cartBooks.get(i).getPrice() + "$");
+            amount.setText("Amount:" + cartBooks.get(i).getAmount());
             bookTitle.setText(cartBooks.get(i).getName());
             String imageUrl = cartBooks.get(i).getImg();
 
             Picasso.get().load(imageUrl).into(bookImage);
-            more.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            String BookID= cartBooks.get(i).getId();
-                            if(snapshot.hasChild(BookID)){
-                                String key = cartBooks.get(i).getId();
-                                DataSnapshot dataSnapshot = snapshot.child(key);
-                                int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
-                                Bookamountt++;
-                                Map<String, Object> updates = new HashMap<>();
-                                updates.put("id", key);
-                                updates.put("name", cartBooks.get(i).getName());
-                                updates.put("img", cartBooks.get(i).getImg());
-                                updates.put("price", cartBooks.get(i).getPrice());
-                                updates.put("username", username);
-                                updates.put("amount",Bookamountt);
-                                databaseReference.child("cart").child(key).updateChildren(updates);
-                                Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
-                                amount.setText("Amount:"+Bookamountt);
-                                total=total+(cartBooks.get(i).getPrice());
-                                totalTxt.setText("Total: "+total);
+            CartBook cartBook = CBooks.get(i);
 
-                            }
+
+            databaseReference.child("books").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot bookSnapshot : snapshot.getChildren()) {
+                        String total = (String) bookSnapshot.child("total").getValue();
+                        bookTotal = Integer.parseInt(total);
+                        if(bookTotal>0){
+
                         }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                        }
-                    });
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    // Handle any errors that occur
                 }
             });
-            less.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            String BookID= cartBooks.get(i).getId();
-                            if(snapshot.hasChild(BookID)){
-                                String key = cartBooks.get(i).getId();
-                                DataSnapshot dataSnapshot = snapshot.child(key);
-                                int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
-                                if(Bookamountt==1){
-                                    total=total+(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
-                                    totalTxt.setText("Total: "+total);
-                                }
-                                Bookamountt--;
-                                //total=total-(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
-                                //totalTxt.setText("Total: "+total);
-                                if(Bookamountt == 0){
-                                    databaseReference.child("cart").child(key).removeValue();
-                                    Toast.makeText(getActivity(), "Deleted", Toast.LENGTH_SHORT).show();
 
 
-                                    amount.setText("Amount:"+Bookamountt);
-                                    startActivity(new Intent(getActivity().getIntent()));
-                                }
-                                else {
+                more.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                String BookID = cartBooks.get(i).getId();
+                                if (snapshot.hasChild(BookID)) {
+                                    String key = cartBooks.get(i).getId();
+                                    DataSnapshot dataSnapshot = snapshot.child(key);
+                                    int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
+                                    Bookamountt++;
                                     Map<String, Object> updates = new HashMap<>();
                                     updates.put("id", key);
                                     updates.put("name", cartBooks.get(i).getName());
@@ -236,20 +216,105 @@ public class CartFragment extends Fragment {
                                     updates.put("amount", Bookamountt);
                                     databaseReference.child("cart").child(key).updateChildren(updates);
                                     Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
-                                    amount.setText("Amount:"+Bookamountt);
-                                    total=total-(cartBooks.get(i).getPrice());
-                                    totalTxt.setText("Total: "+total);
+                                    amount.setText("Amount:" + Bookamountt);
+                                    total = total + (cartBooks.get(i).getPrice());
+                                    totalTxt.setText("Total: " + total);
+
+                                    booksReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
+                                            if (booksSnapshot.exists()) {
+                                                int bookAmount = Integer.parseInt(booksSnapshot.child("total").getValue(String.class));
+                                                int updatedAmount = bookAmount - 1;
+                                                bookTotal = updatedAmount;
+                                                booksReference.child("total").setValue(Integer.toString(updatedAmount));
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                        }
+                                    });
+
                                 }
                             }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                            }
+
+                        });
+                    }
+                });
+
+            less.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String BookID = cartBooks.get(i).getId();
+                            if (snapshot.hasChild(BookID)) {
+                                String key = cartBooks.get(i).getId();
+                                DataSnapshot dataSnapshot = snapshot.child(key);
+                                int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
+                                if (Bookamountt == 1) {
+                                    total = total + (cartBooks.get(i).getPrice() * cartBooks.get(i).getAmount());
+                                    totalTxt.setText("Total: " + total);
+                                }
+                                Bookamountt--;
+                                //total=total-(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
+                                //totalTxt.setText("Total: "+total);
+                                if (Bookamountt == 0) {
+                                    databaseReference.child("cart").child(key).removeValue();
+                                    Toast.makeText(getActivity(), "Deleted", Toast.LENGTH_SHORT).show();
+
+
+                                    amount.setText("Amount:" + Bookamountt);
+                                    startActivity(new Intent(getActivity().getIntent()));
+                                } else {
+                                    Map<String, Object> updates = new HashMap<>();
+                                    updates.put("id", key);
+                                    updates.put("name", cartBooks.get(i).getName());
+                                    updates.put("img", cartBooks.get(i).getImg());
+                                    updates.put("price", cartBooks.get(i).getPrice());
+                                    updates.put("username", username);
+                                    updates.put("amount", Bookamountt);
+                                    databaseReference.child("cart").child(key).updateChildren(updates);
+                                    Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
+                                    amount.setText("Amount:" + Bookamountt);
+                                    total = total - (cartBooks.get(i).getPrice());
+                                    totalTxt.setText("Total: " + total);
+                                }
+                                booksReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
+                                        if (booksSnapshot.exists()) {
+                                            int bookAmount = Integer.parseInt(booksSnapshot.child("total").getValue(String.class));
+                                            int updatedAmount = bookAmount + 1;
+                                            bookTotal = updatedAmount;
+                                            booksReference.child("total").setValue(Integer.toString(updatedAmount));
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+                            }
                         }
+
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
                         }
                     });
                 }
             });
-
-
             return view1;
         }
     }
