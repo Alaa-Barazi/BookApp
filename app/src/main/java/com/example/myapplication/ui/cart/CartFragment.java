@@ -49,6 +49,7 @@ public class CartFragment extends Fragment {
 int update =0;
     String username;
     int bookTotal=0;
+
     ListView ls;
     Button btnPay;
     int total=0;
@@ -88,8 +89,12 @@ int update =0;
                                         int bookTotal = Integer.parseInt(booksSnapshot.child("total").getValue(String.class));
                                         int updatedAmount = bookTotal - cartBookAmount;
                                         //add to hare prefernce or something to save it cause now its not saving its value
+                                        SharedPreferences.Editor myedit = sharedPreferences.edit();
+
                                         updateAmount = bookTotal - cartBookAmount;
                                         bookReference.child("total").setValue(Integer.toString(updatedAmount));
+                                        myedit.putInt("total",updatedAmount);
+                                        myedit.commit();
                                     }
                                 }
                                 @Override
@@ -102,13 +107,19 @@ int update =0;
                                 String cartBookId = cartSnapshot.child("id").getValue(String.class);
                                 int cartAmount = cartSnapshot.child("amount").getValue(Integer.class);
                                 String cartUsername = cartSnapshot.child("username").getValue(String.class);
+                                int theupdateAmount = sharedPreferences.getInt("total", 0);
                                 if (!cartUsername.equals(username) && cartBookId.equals(cartBook.getId())) {
                                     int update = Math.abs(cartBookAmount - cartAmount);
                                     String cartKey = cartSnapshot.getKey();
-                                    Toast.makeText(getActivity(), cartAmount+"-"+cartBookAmount+"-"+updateAmount, Toast.LENGTH_SHORT).show();
 
+                                        if(theupdateAmount<=0){
+                                            databaseReference.child("cart").child(cartKey).removeValue();
+                                        }
+                                        else{
+                                            databaseReference.child("cart").child(cartKey).child("amount").setValue(theupdateAmount);
+                                        }
                                         //if (update <= 0) {
-                                         //   databaseReference.child("cart").child(cartKey).removeValue();
+                                         //
                                        // } else {
                                           //  if (cartAmount > cartBookAmount) {
                                            /* Map<String, Object> updates = new HashMap<>();
@@ -121,7 +132,7 @@ int update =0;
                                             updates.put("username", cartBooks.get(i).getUsername());
                                             updates.put("amount", updateAmount);
                                             databaseReference.child("cart").child(cartKey).updateChildren(updates);*/
-                                            databaseReference.child("cart").child(cartKey).child("amount").setValue(update);
+
                                            // }
                                         //}
 
@@ -368,10 +379,10 @@ int update =0;
                                 for (DataSnapshot childSnapshot : snapshot.getChildren()) {
                                     String key = childSnapshot.getKey();
                                     String title = (String) childSnapshot.child("username").getValue();
-                                    Toast.makeText(getActivity(), "1 "+childSnapshot.child("username")+" "+username, Toast.LENGTH_SHORT).show();
+                                   // Toast.makeText(getActivity(), "1 "+childSnapshot.child("username")+" "+username, Toast.LENGTH_SHORT).show();
 
                                     if (title.equals(username)) {
-                                        Toast.makeText(getActivity(), "key " + childSnapshot.getKey(), Toast.LENGTH_SHORT).show();
+                                       // Toast.makeText(getActivity(), "key " + childSnapshot.getKey(), Toast.LENGTH_SHORT).show();
                                         int bookAmountt = childSnapshot.child("amount").getValue(Integer.class);
                                     if (bookAmountt < bookTotal) {
                                         bookAmountt++;
