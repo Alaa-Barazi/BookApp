@@ -24,9 +24,11 @@ import android.widget.Toast;
 import com.example.myapplication.Book;
 import com.example.myapplication.CartBook;
 import com.example.myapplication.FavoriteBook;
+import com.example.myapplication.MainActivity;
 import com.example.myapplication.MoreBook;
 import com.example.myapplication.R;
 import com.example.myapplication.ui.favorite.FavoritesFragment;
+import com.example.myapplication.ui.home.HomeFragment;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -43,10 +45,8 @@ public class CartFragment extends Fragment {
 
     private CartViewModel mViewModel;
     SharedPreferences sharedPreferences;
-    Random random = new Random();
 
-    // Generate a random key with only numbers
-
+int update =0;
     String username;
     int bookTotal=0;
     ListView ls;
@@ -75,6 +75,112 @@ public class CartFragment extends Fragment {
         btnPay = (Button) root.findViewById(R.id.btnPay);
 
         btnPay.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+
+            public void onClick(View view) {
+
+                databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+
+                    @Override
+
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        for (CartBook cartBook : cartBooks) {
+
+                            int cartBookAmount = cartBook.getAmount();
+
+                            DatabaseReference bookReference = databaseReference.child("books").child(cartBook.getId());
+
+                            bookReference.addListenerForSingleValueEvent(new ValueEventListener() {
+
+                                @Override
+
+                                public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
+
+                                    if (booksSnapshot.exists()) {
+
+                                        int bookTotal = Integer.parseInt(booksSnapshot.child("total").getValue(String.class));
+
+                                        int updatedAmount = bookTotal - cartBookAmount;
+
+                                        bookReference.child("total").setValue(Integer.toString(updatedAmount));
+
+                                    }
+                                }
+                                @Override
+
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                }
+
+                            });
+
+
+
+                            for (DataSnapshot cartSnapshot : snapshot.getChildren()) {
+                                String cartBookId = cartSnapshot.child("id").getValue(String.class);
+                                int cartAmount = cartSnapshot.child("amount").getValue(Integer.class);
+                                String cartUsername = cartSnapshot.child("username").getValue(String.class);
+                                if (!cartUsername.equals(username) && cartBookId.equals(cartBook.getId())) {
+                                    String cartKey = cartSnapshot.getKey();
+                                    Toast.makeText(getActivity(), "qty "+cartAmount+" "+cartBookAmount, Toast.LENGTH_SHORT).show();
+                                    if (cartAmount != cartBookAmount) {
+                                        if (cartBookAmount <= 0) {
+                                            //databaseReference.getRef().removeValue();
+                                            databaseReference.child("cart").child(cartKey).removeValue();
+                                        } else {
+                                          //  if (cartAmount > cartBookAmount) {
+                                                databaseReference.child("cart").child(cartKey).child("amount").setValue(cartBookAmount);
+                                           // }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Update quantities of other products based on the new quantities in the cart
+                        for (CartBook cartBook : cartBooks) {
+                            String cartBookId = cartBook.getId();
+                            int cartBookAmount = cartBook.getAmount();
+                            DatabaseReference booksReference = databaseReference.child("books").child(cartBookId);
+                            booksReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+                                        int bookTotal = Integer.parseInt(snapshot.child("total").getValue(String.class));
+                                        int updatedAmount = bookTotal - cartBookAmount;
+                                        if(updatedAmount < 0 ) updatedAmount=0;
+                                        booksReference.child("total").setValue(Integer.toString(updatedAmount));
+                                    }
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                }
+                            });
+                        }
+                        // Remove cart items for the current user
+                        databaseReference.child("cart").orderByChild("username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    String cartKey = dataSnapshot.getKey();
+                                    databaseReference.child("cart").child(cartKey).removeValue();
+                                }
+                                Toast.makeText(getActivity(), "Cart Payed!!", Toast.LENGTH_SHORT).show();
+                              //  startActivity(new Intent(getActivity(), HomeFragment.class));
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                            }
+                        });
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                    }
+                });
+            }
+        });
+        /*btnPay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -93,7 +199,9 @@ public class CartFragment extends Fragment {
                                 public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
                                     if (booksSnapshot.exists()) {
                                         bookAmount = Integer.parseInt(booksSnapshot.child("total").getValue(String.class));
-                                        bookAmount-= cartBook.getAmount();
+                                       update = bookAmount -  cartbookamount;
+                                        booksReference.child("total").setValue(Integer.toString(bookAmount));
+
                                     }
                                 }
                                 @Override
@@ -106,24 +214,28 @@ public class CartFragment extends Fragment {
                              for(DataSnapshot dataSnapshot :snapshot.getChildren()){
                                     if(!dataSnapshot.child("username").equals(username)){
                                         if(dataSnapshot.child("id").equals(cartBook.getId())){
-                                            int newAmount = dataSnapshot.child("amount").getValue(Integer.class);
-                                            if(newAmount!=bookAmount){
-                                                int updatedAmount = Math.abs(dataSnapshot.child("amount").getValue(Integer.class)-bookAmount);
-                                                if(updatedAmount==0){
-                                                    databaseReference.child("cart").child(cartBook.getId()).removeValue();
+                                            String keyy = dataSnapshot.getKey();
+                                            int CartAmount = dataSnapshot.child("amount").getValue(Integer.class);
+
+                                            if(CartAmount!=bookAmount){
+                                               // int updatedAmount = Math.abs(dataSnapshot.child("amount").getValue(Integer.class)-bookAmount);
+                                                if(bookAmount==0){
+                                                    databaseReference.child("cart").child(keyy).removeValue();
                                                 }
-                                                else{
-                                                    // amount id img name price username
-                                                    Map<String, Object> updates = new HashMap<>();
-                                                    String key = cartBook.getId();
-                                                    int i = Integer.parseInt(key);
-                                                    updates.put("id", key);
-                                                    updates.put("name", cartBooks.get(i).getName());
-                                                    updates.put("img", cartBooks.get(i).getImg());
-                                                    updates.put("price", cartBooks.get(i).getPrice());
-                                                    updates.put("username", cartBooks.get(i).getUsername());
-                                                    updates.put("amount", updatedAmount);
-                                                    databaseReference.child("cart").child(key).updateChildren(updates);
+                                                else {
+                                                    if (CartAmount > bookAmount) {
+                                                        Map<String, Object> updates = new HashMap<>();
+                                                        String thekey = dataSnapshot.getKey();
+                                                        String key = cartBook.getId();
+                                                        int i = Integer.parseInt(key);
+                                                        updates.put("id", key);
+                                                        updates.put("name", cartBooks.get(i).getName());
+                                                        updates.put("img", cartBooks.get(i).getImg());
+                                                        updates.put("price", cartBooks.get(i).getPrice());
+                                                        updates.put("username", cartBooks.get(i).getUsername());
+                                                        updates.put("amount", update);
+                                                        databaseReference.child("cart").child(thekey).updateChildren(updates);
+                                                    }
                                                 }
                                             }
                                         }
@@ -138,21 +250,24 @@ public class CartFragment extends Fragment {
 
                         //delete cart for this user
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            String thekey = dataSnapshot.getKey();
                             String key = dataSnapshot.child("id").getValue(String.class);
                             String user = (String) dataSnapshot.child("username").getValue();
                             if (username.equals(user)) {
-                                databaseReference.child("cart").child(key).removeValue();
-                                Toast.makeText(getActivity(), "Cart Payed!!", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(getActivity().getIntent()));
+                                databaseReference.child("cart").child(thekey).removeValue();
+
                             }
+
                         }
+                        Toast.makeText(getActivity(), "Cart Payed!!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(getActivity().getIntent()));
 
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {}
                      });
             }
-        });
+        });*/
         ls= (ListView) root.findViewById(R.id.cartLS);
         CartFragment.MyAdapter myAdapter = new CartFragment.MyAdapter(cartBooks);
         ls.setAdapter(myAdapter);
@@ -162,11 +277,11 @@ public class CartFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                 for(DataSnapshot data : snapshot.getChildren()){
-                    String key = data.child("id").getValue(String.class);;
+                    String key = data.child("id").getValue(String.class);
                    DataSnapshot dataSnapshot = snapshot.child(key);
-                    int amount = dataSnapshot.child("amount").getValue(Integer.class);
-                    String id = dataSnapshot.child("id").getValue(String.class);
-                    int price = dataSnapshot.child("price").getValue(Integer.class);
+                    int amount = data.child("amount").getValue(Integer.class);
+                   String id = data.child("id").getValue(String.class);
+                    int price = data.child("price").getValue(Integer.class);
                    String user = (String) data.child("username").getValue();
                     String name = (String) data.child("name").getValue();
                     String img = (String) data.child("img").getValue();
@@ -224,18 +339,13 @@ public class CartFragment extends Fragment {
             TextView price = view1.findViewById(R.id.price);
             ImageView bookImage = view1.findViewById(R.id.bookImage);
             TextView amount = (TextView) view1.findViewById(R.id.amount);
-
             Button more = view1.findViewById(R.id.more);
             Button less = view1.findViewById(R.id.less);
             price.setText("Price: " + cartBooks.get(i).getPrice() + "$");
             amount.setText("Amount:" + cartBooks.get(i).getAmount());
             bookTitle.setText(cartBooks.get(i).getName());
             String imageUrl = cartBooks.get(i).getImg();
-
             Picasso.get().load(imageUrl).into(bookImage);
-
-
-
                 more.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -333,44 +443,42 @@ public class CartFragment extends Fragment {
             less.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
                     databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
 
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             String BookID = cartBooks.get(i).getId();
-                            if (snapshot.hasChild(BookID)) {
-                                String key =  snapshot.getKey();
-                                DataSnapshot dataSnapshot = snapshot.child(key);
-                                int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
-                                if (Bookamountt == 1) {
-                                    total = total + (cartBooks.get(i).getPrice() * cartBooks.get(i).getAmount());
-                                    totalTxt.setText("Total: " + total);
-                                }
-                                Bookamountt--;
-                                //total=total-(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
-                                //totalTxt.setText("Total: "+total);
-                                if (Bookamountt == 0) {
-                                    databaseReference.child("cart").child(key).removeValue();
-                                    Toast.makeText(getActivity(), "Deleted", Toast.LENGTH_SHORT).show();
-
-
-                                    amount.setText("Amount:" + Bookamountt);
-                                    startActivity(new Intent(getActivity().getIntent()));
-                                } else {
-                                    Map<String, Object> updates = new HashMap<>();
-                                    updates.put("id", key);
-                                    updates.put("name", cartBooks.get(i).getName());
-                                    updates.put("img", cartBooks.get(i).getImg());
-                                    updates.put("price", cartBooks.get(i).getPrice());
-                                    updates.put("username", username);
-                                    updates.put("amount", Bookamountt);
-                                    databaseReference.child("cart").child(key).updateChildren(updates);
-                                    Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
-                                    amount.setText("Amount:" + Bookamountt);
-                                    total = total - (cartBooks.get(i).getPrice());
-                                    totalTxt.setText("Total: " + total);
-                                }
+                            for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                                String key = childSnapshot.getKey();
+                                String user = (String) childSnapshot.child("username").getValue();
+                                    DataSnapshot dataSnapshot = snapshot.child(key);
+                                    int Bookamountt = dataSnapshot.child("amount").getValue(Integer.class);
+                                    if (Bookamountt == 1) {
+                                        total = total + (cartBooks.get(i).getPrice() * cartBooks.get(i).getAmount());
+                                        totalTxt.setText("Total: " + total);
+                                    }
+                                    Bookamountt--;
+                                    //total=total-(cartBooks.get(i).getPrice()*cartBooks.get(i).getAmount());
+                                    //totalTxt.setText("Total: "+total);
+                                    if (Bookamountt == 0) {
+                                        databaseReference.child("cart").child(key).removeValue();
+                                        Toast.makeText(getActivity(), "Deleted", Toast.LENGTH_SHORT).show();
+                                        amount.setText("Amount:" + Bookamountt);
+                                        startActivity(new Intent(getActivity().getIntent()));
+                                    } else {
+                                        Map<String, Object> updates = new HashMap<>();
+                                        updates.put("id", key);
+                                        updates.put("name", cartBooks.get(i).getName());
+                                        updates.put("img", cartBooks.get(i).getImg());
+                                        updates.put("price", cartBooks.get(i).getPrice());
+                                        updates.put("username", username);
+                                        updates.put("amount", Bookamountt);
+                                        databaseReference.child("cart").child(key).updateChildren(updates);
+                                        Toast.makeText(getActivity(), "Amount changed", Toast.LENGTH_SHORT).show();
+                                        amount.setText("Amount:" + Bookamountt);
+                                        total = total - (cartBooks.get(i).getPrice());
+                                        totalTxt.setText("Total: " + total);
+                                    }
 //                                booksReference.addListenerForSingleValueEvent(new ValueEventListener() {
 //                                    @Override
 //                                    public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
@@ -387,6 +495,7 @@ public class CartFragment extends Fragment {
 //
 //                                    }
 //                                });
+
 
                             }
                         }
