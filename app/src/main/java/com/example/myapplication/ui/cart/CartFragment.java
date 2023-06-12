@@ -54,7 +54,7 @@ int update =0;
     int total=0;
     TextView totalTxt;
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReferenceFromUrl("https://fireapp-4a2be-default-rtdb.firebaseio.com/");
-
+    int updateAmount=0;
     ArrayList<CartBook> cartBooks=new ArrayList<CartBook>();
 
     public static CartFragment newInstance() {
@@ -71,41 +71,25 @@ int update =0;
         sharedPreferences = getActivity().getSharedPreferences("Myprefs", Context.MODE_PRIVATE);
         username = sharedPreferences.getString("username","empty");
         totalTxt = (TextView) root.findViewById(R.id.totalTxt);
-        //totalTxt.setText(total);
         btnPay = (Button) root.findViewById(R.id.btnPay);
-
         btnPay.setOnClickListener(new View.OnClickListener() {
-
             @Override
-
             public void onClick(View view) {
-
                 databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
-
                     @Override
-
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                         for (CartBook cartBook : cartBooks) {
-
                             int cartBookAmount = cartBook.getAmount();
-
                             DatabaseReference bookReference = databaseReference.child("books").child(cartBook.getId());
-
                             bookReference.addListenerForSingleValueEvent(new ValueEventListener() {
-
                                 @Override
-
                                 public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
-
                                     if (booksSnapshot.exists()) {
-
                                         int bookTotal = Integer.parseInt(booksSnapshot.child("total").getValue(String.class));
-
                                         int updatedAmount = bookTotal - cartBookAmount;
-
+                                        //add to hare prefernce or something to save it cause now its not saving its value
+                                        updateAmount = bookTotal - cartBookAmount;
                                         bookReference.child("total").setValue(Integer.toString(updatedAmount));
-
                                     }
                                 }
                                 @Override
@@ -114,26 +98,33 @@ int update =0;
                                 }
 
                             });
-
-
-
                             for (DataSnapshot cartSnapshot : snapshot.getChildren()) {
                                 String cartBookId = cartSnapshot.child("id").getValue(String.class);
                                 int cartAmount = cartSnapshot.child("amount").getValue(Integer.class);
                                 String cartUsername = cartSnapshot.child("username").getValue(String.class);
                                 if (!cartUsername.equals(username) && cartBookId.equals(cartBook.getId())) {
+                                    int update = Math.abs(cartBookAmount - cartAmount);
                                     String cartKey = cartSnapshot.getKey();
-                                    Toast.makeText(getActivity(), "qty "+cartAmount+" "+cartBookAmount, Toast.LENGTH_SHORT).show();
-                                    if (cartAmount != cartBookAmount) {
-                                        if (cartBookAmount <= 0) {
-                                            //databaseReference.getRef().removeValue();
-                                            databaseReference.child("cart").child(cartKey).removeValue();
-                                        } else {
+                                    Toast.makeText(getActivity(), cartAmount+"-"+cartBookAmount+"-"+updateAmount, Toast.LENGTH_SHORT).show();
+
+                                        //if (update <= 0) {
+                                         //   databaseReference.child("cart").child(cartKey).removeValue();
+                                       // } else {
                                           //  if (cartAmount > cartBookAmount) {
-                                                databaseReference.child("cart").child(cartKey).child("amount").setValue(cartBookAmount);
+                                           /* Map<String, Object> updates = new HashMap<>();
+                                            String key = cartBook.getId();
+                                            int i = Integer.parseInt(key);
+                                            updates.put("id", key);
+                                            updates.put("name", cartBooks.get(i).getName());
+                                            updates.put("img", cartBooks.get(i).getImg());
+                                            updates.put("price", cartBooks.get(i).getPrice());
+                                            updates.put("username", cartBooks.get(i).getUsername());
+                                            updates.put("amount", updateAmount);
+                                            databaseReference.child("cart").child(cartKey).updateChildren(updates);*/
+                                            databaseReference.child("cart").child(cartKey).child("amount").setValue(update);
                                            // }
-                                        }
-                                    }
+                                        //}
+
                                 }
                             }
                         }
