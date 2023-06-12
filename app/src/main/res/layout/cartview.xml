@@ -71,7 +71,7 @@
                     android:layout_width="20dp"
                     android:layout_height="60dp"
 
-                    android:layout_marginTop="50dp"
+                    android:layout_marginTop="30dp"
                     android:layout_weight="1"
                     android:backgroundTint="#D17B7B"
                     android:text="➖" />
@@ -81,7 +81,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:layout_marginTop="50dp"
+                    android:layout_marginTop="30dp"
                     android:layout_weight="1"
                     android:text="Amount"
                     android:textAlignment="center"
@@ -92,7 +92,7 @@
                     android:layout_width="20dp"
                     android:layout_height="60dp"
                     android:layout_marginLeft="30dp"
-                    android:layout_marginTop="50dp"
+                    android:layout_marginTop="30dp"
                     android:layout_weight="1"
                     android:backgroundTint="#D17B7B"
                     android:text="➕" />

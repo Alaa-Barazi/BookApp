@@ -165,12 +165,14 @@ public class HomeFragment extends Fragment {
                             if (Books.get(i).getTotal() <= 0) {
                                 Toast.makeText(getActivity(), "This book is sold out", Toast.LENGTH_SHORT).show();
                             } else {
-                                if (snapshot.hasChild(Integer.toString(BookID))) {
+                                if (snapshot.hasChild(Integer.toString(BookID)) && snapshot.child("username").equals(username)) {
                                     String key = Integer.toString(Books.get(i).getId());
                                     DataSnapshot dataSnapshot = snapshot.child(key);
                                     int amount = dataSnapshot.child("amount").getValue(Integer.class);
+
                                     amount++;
-                                    Map<String, Object> updates = new HashMap<>();
+                                    if (amount <= Books.get(i).getTotal()){
+                                        Map<String, Object> updates = new HashMap<>();
                                     updates.put("id", key);
                                     updates.put("name", Books.get(i).getName());
                                     updates.put("img", Books.get(i).getImg());
@@ -179,18 +181,24 @@ public class HomeFragment extends Fragment {
                                     updates.put("amount", amount);
                                     databaseReference.child("cart").child(key).updateChildren(updates);
                                     Toast.makeText(getActivity(), "Already Exists, amount changed", Toast.LENGTH_SHORT).show();
-                                } else {
+                                }
+
+                                    else{
+                                        Toast.makeText(getActivity(), "Maximum Qty", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else if (snapshot.child("username").equals(username)==false) {
+                                    String key = databaseReference.push().getKey();
                                     CartBook cartBook = new CartBook(Books.get(i).getName(), imageUrl, Integer.toString(BookID), Books.get(i).getPrice(), username, 1);
-                                    databaseReference.child("cart").child(Integer.toString(BookID)).setValue(cartBook);
+                                    databaseReference.child("cart").child(key).setValue(cartBook);
                                     Toast.makeText(getActivity(), "Added Successfully", Toast.LENGTH_LONG).show();
                                 }
-                                Books.get(i).setTotal(Books.get(i).getTotal()-1);
-                                Map<String, Object> updates = new HashMap<>();
-                                updates.put("img", Books.get(i).getImg());
-                                updates.put("name", Books.get(i).getName());
-                                updates.put("price", Integer.toString(Books.get(i).getPrice()));
-                                updates.put("total", Integer.toString(Books.get(i).getTotal()));
-                                databaseReference.child("books").child(Integer.toString(BookID)).setValue(updates);
+//                                Books.get(i).setTotal(Books.get(i).getTotal()-1);
+//                                Map<String, Object> updates = new HashMap<>();
+//                                updates.put("img", Books.get(i).getImg());
+//                                updates.put("name", Books.get(i).getName());
+//                                updates.put("price", Integer.toString(Books.get(i).getPrice()));
+//                                updates.put("total", Integer.toString(Books.get(i).getTotal()));
+//                                databaseReference.child("books").child(Integer.toString(BookID)).setValue(updates);
 
                             }
                         }
