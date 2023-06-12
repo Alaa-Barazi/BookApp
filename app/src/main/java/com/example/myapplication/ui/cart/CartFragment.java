@@ -399,7 +399,6 @@ int update =0;
                                     Toast.makeText(getActivity(), "Maximum quantity reached", Toast.LENGTH_SHORT).show();
                                     }
                                     }
-
 //                                    booksReference.addListenerForSingleValueEvent(new ValueEventListener() {
 //                                        @Override
 //                                        public void onDataChange(@NonNull DataSnapshot booksSnapshot) {
