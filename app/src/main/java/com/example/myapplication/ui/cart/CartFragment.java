@@ -169,6 +169,7 @@ int update =0;
                                     databaseReference.child("cart").child(cartKey).removeValue();
                                 }
                                 Toast.makeText(getActivity(), "Cart Payed!!", Toast.LENGTH_SHORT).show();
+                                startActivity(getActivity().getIntent());
                               //  startActivity(new Intent(getActivity(), HomeFragment.class));
                             }
                             @Override
