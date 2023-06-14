@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ import com.example.myapplication.MoreBook;
 import com.example.myapplication.R;
 import com.example.myapplication.databinding.FragmentHomeBinding;
 
+import com.example.myapplication.ui.cart.CartFragment;
 import com.example.myapplication.ui.slideshow.SlideshowFragment;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -161,12 +163,83 @@ public class HomeFragment extends Fragment {
                     databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            boolean found = false;
+                            int total = -1;
+                            int bookID = Books.get(i).getId();
+                            //String username = sharedPreferences.getString("username", "empty");
+                            String cartKey = ""; // To store the cart key if the book is found
+
+                            for (DataSnapshot data : snapshot.getChildren()) {
+                                //CartBook cartBook = data.getValue(CartBook.class);
+                                String id = data.child("id").getValue(String.class).trim();
+                                String user = data.child("username").getValue(String.class);
+                                String key = data.getKey();
+                                total = Books.get(i).getTotal();
+                                DataSnapshot dataSnapshot = snapshot.child(key);
+                                int amount = data.child("amount").getValue(Integer.class);
+                                if (id.equals(Integer.toString(bookID)) && user.equals(username)) {
+                                    found = true;
+                                    if (Books.get(i).getTotal() <= 0) {
+                                        Toast.makeText(getActivity(), "This book is sold out", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        if (found) {
+                                            if (amount < Books.get(i).getTotal()) {
+                                                amount++;
+                                                databaseReference.child("cart").child(key).child("amount").setValue(amount);
+                                                Toast.makeText(getActivity(), "Already exists, amount changed", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Toast.makeText(getActivity(), "Maximum quantity reached", Toast.LENGTH_SHORT).show();
+                                            }
+
+                                        }
+                                    }
+                                    startActivity(getActivity().getIntent());
+
+                                }
+
+                            }
+
+                             if(!found && total>0) {
+                                 String newCartKey = databaseReference.child("cart").push().getKey();
+                                 CartBook newCartBook = new CartBook(Books.get(i).getName(), Books.get(i).getImg(), Integer.toString(bookID), Books.get(i).getPrice(), username, 1);
+                                 databaseReference.child("cart").child(newCartKey).setValue(newCartBook);
+                                 Toast.makeText(getActivity(), "Added successfully", Toast.LENGTH_SHORT).show();
+                             }
+                             else {
+                                 Toast.makeText(getActivity(), "SOLD OUT", Toast.LENGTH_SHORT).show();
+
+                             }
+
+                                }
+
+
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            // Handle onCancelled
+                        }
+                    });
+                }
+            });
+
+            /*cart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    databaseReference.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            boolean found =false;
                             int BookID = Books.get(i).getId();
+                            String thekey = snapshot.getKey();
+                            Toast.makeText(getActivity(), thekey+" "+BookID, Toast.LENGTH_SHORT).show();
                             if (Books.get(i).getTotal() <= 0) {
                                 Toast.makeText(getActivity(), "This book is sold out", Toast.LENGTH_SHORT).show();
-                            } else {
-                                if (snapshot.hasChild(Integer.toString(BookID)) && snapshot.child("username").equals(username)) {
+                            }
+                            else {
+
+                                if (snapshot.hasChild(thekey) && snapshot.child(thekey).child("id").equals(BookID) && snapshot.child("username").equals(username)) {
                                     String key = Integer.toString(Books.get(i).getId());
+
                                     DataSnapshot dataSnapshot = snapshot.child(key);
                                     int amount = dataSnapshot.child("amount").getValue(Integer.class);
 
@@ -179,7 +252,7 @@ public class HomeFragment extends Fragment {
                                     updates.put("price", Books.get(i).getPrice());
                                     updates.put("username", username);
                                     updates.put("amount", amount);
-                                    databaseReference.child("cart").child(key).updateChildren(updates);
+                                    databaseReference.child("cart").child(thekey).updateChildren(updates);
                                     Toast.makeText(getActivity(), "Already Exists, amount changed", Toast.LENGTH_SHORT).show();
                                 }
 
@@ -208,7 +281,7 @@ public class HomeFragment extends Fragment {
                         }
                     });
                 }
-            });
+            });*/
             addToFavorites.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

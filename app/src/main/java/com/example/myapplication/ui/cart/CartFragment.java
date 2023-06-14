@@ -111,7 +111,6 @@ int update =0;
                                 if (!cartUsername.equals(username) && cartBookId.equals(cartBook.getId())) {
                                     int update = Math.abs(cartBookAmount - cartAmount);
                                     String cartKey = cartSnapshot.getKey();
-
                                         if(theupdateAmount<=0){
                                             databaseReference.child("cart").child(cartKey).removeValue();
                                         }
@@ -394,8 +393,9 @@ int update =0;
                                         total = total + cartBooks.get(i).getPrice();
                                         totalTxt.setText("Total: " + total);
 
-                                    } else {
-                                    Toast.makeText(getActivity(), "key "+childSnapshot.getKey(), Toast.LENGTH_SHORT).show();
+                                    }
+                                    else {
+                                    //Toast.makeText(getActivity(), "key "+childSnapshot.getKey(), Toast.LENGTH_SHORT).show();
 
                                     Toast.makeText(getActivity(), "Maximum quantity reached", Toast.LENGTH_SHORT).show();
                                     }
@@ -431,11 +431,11 @@ int update =0;
                     }
                         else{
                             if(bookTotal==0) {
-                                Toast.makeText(getActivity(), bookTotal+" "+cartBooks.get(i).getAmount(), Toast.LENGTH_SHORT).show();
+                               // Toast.makeText(getActivity(), bookTotal+" "+cartBooks.get(i).getAmount(), Toast.LENGTH_SHORT).show();
                                 Toast.makeText(getActivity(), "Sold OUT", Toast.LENGTH_SHORT).show();
                             }
                             else {
-                                Toast.makeText(getActivity(), bookTotal+" "+cartBooks.get(i).getAmount(), Toast.LENGTH_SHORT).show();
+                              //  Toast.makeText(getActivity(), bookTotal+" "+cartBooks.get(i).getAmount(), Toast.LENGTH_SHORT).show();
                                 Toast.makeText(getActivity(), "Maximum qty", Toast.LENGTH_SHORT).show();
                             }
                         }
